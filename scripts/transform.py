@@ -1,3 +1,4 @@
+import pandas as pd
 def transform_data(df):
     print("Transforming data...")
     df = df.dropna()
