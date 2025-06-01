@@ -1,20 +1,24 @@
-import pandas as pd  # Import pandas for data handling and manipulation
-import zipfile        # Import zipfile to work with ZIP archives
-import io             # Import io to wrap byte streams as text streams for decoding
+import pandas as pd  # Import pandas for data handling
+import zipfile        # Import zipfile to read ZIP archives
+import io             # Import io to decode bytes to text
 
 def extract_data(zip_path):
-    print("Extracting data from ZIP...")  # Inform the user that data extraction is starting
+    print("Extracting data from ZIP...")  # Notify user
 
-    # Open the ZIP file located at the provided path
-    with zipfile.ZipFile(zip_path, 'r') as z:
+    with zipfile.ZipFile(zip_path, 'r') as z:  # Open ZIP file
 
-        # Identify the first CSV file within the ZIP archive
-        csv_file = [f for f in z.namelist() if f.endswith('.csv')][0]
+        # Filter for .csv files only
+        csv_files = [f for f in z.namelist() if f.endswith('.csv')]
 
-        # Open the CSV file in binary mode and decode it safely as a text stream
+        # Handle case where ZIP contains no .csv file
+        if not csv_files:
+            raise FileNotFoundError("No CSV file found inside the ZIP archive.")
+
+        csv_file = csv_files[0]  # Get the first CSV file
+
         with z.open(csv_file) as f:
-            wrapper = io.TextIOWrapper(f, encoding="latin1", errors="replace")  # Decode with latin1 and replace problematic characters
+            # Decode bytes to text and handle bad characters
+            wrapper = io.TextIOWrapper(f, encoding="latin1", errors="replace")
 
-            # Read the CSV into a pandas DataFrame
-            # 'on_bad_lines="skip"' skips rows that don't match the column structure (like malformed lines)
+            # Read the CSV into DataFrame, skipping malformed lines
             return pd.read_csv(wrapper, on_bad_lines="skip")
